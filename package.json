@@ -1,6 +1,6 @@
 {
   "name": "@scryspell/recorder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "author": "Chris Ryan",
   "main": "./dist/index.js",
@@ -37,5 +37,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": ["dist", "dist/browser"]
+  "files": [
+    "dist",
+    "dist/browser"
+  ]
 }
