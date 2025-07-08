@@ -1,4 +1,4 @@
-import axios, {AxiosError, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse,} from "axios";
+import axios, {type AxiosInstance, type AxiosRequestConfig} from "axios";
 
 const api: AxiosInstance = axios.create({
     baseURL: window.location.hostname.includes("localhost")

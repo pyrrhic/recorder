@@ -60,8 +60,8 @@ export class EventRecorder {
         this.isRunning = true;
         this.eventsBuffer = [];
 
-        const originalPushState = window.history.pushState.bind(window.history);
-        window.history.pushState = (data: any, unused: string, url?: string | URL | null) => {
+        const originalPushState = this.window.history.pushState.bind(this.window.history);
+        this.window.history.pushState = (data: any, unused: string, url?: string | URL | null) => {
             let urlString = "";
             if (url instanceof URL) {
                 urlString = url.toString();
@@ -77,7 +77,7 @@ export class EventRecorder {
 
         this.window.addEventListener("pageshow", (e) => {
                 try {
-                    this.handlePageView(window.location.pathname);
+                    this.handlePageView(this.window.location.pathname);
                 } catch (error) {
                     logger.error("Failed to capture URL change event", error);
                 }
@@ -121,10 +121,10 @@ export class EventRecorder {
 
             const isPathAbsolute = path.charAt(0) === "/";
             if (!isPathAbsolute) {
-                path = window.location.pathname + "/" + path;
+                path = this.window.location.pathname + "/" + path;
             }
 
-            const url = new URL(window.location.protocol + "//" + window.location.host + path + window.location.search);
+            const url = new URL(this.window.location.protocol + "//" + this.window.location.host + path + this.window.location.search);
 
             const sanitizedUrlString = this.sanitizeUrlParams(url.toString(), this.queryParamsAllowed);
             const sanitizedUrl = new URL(sanitizedUrlString);

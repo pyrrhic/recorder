@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "allowImportingTsExtensions": false, // if noEmit is false, then this can't be true, so override from tsconfig.app.json
+    "noEmit": false,            // override the "noEmit": true coming from tsconfig.app.json
+    "moduleResolution": "node", // production library settings
+    "module": "ES2020"
+  },
+  "include": ["src"]
+}
