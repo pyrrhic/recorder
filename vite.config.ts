@@ -16,7 +16,7 @@ export default defineConfig({
         dts({ outDir: 'dist/browser' })
     ]
 });
-ø
+
 
 // export default defineConfig({
 //     build: {
