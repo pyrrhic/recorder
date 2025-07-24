@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+import type {MinifyOptions} from "terser";
 
 export default defineConfig({
     build: {
@@ -10,7 +11,7 @@ export default defineConfig({
             formats: ['es', 'iife']             // ES for module-aware browsers, IIFE for globals
         },
         outDir: 'dist/browser',
-        emptyOutDir: true
+        emptyOutDir: true,
     },
     plugins: [
         dts({ outDir: 'dist/browser' })

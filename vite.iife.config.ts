@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import type { MinifyOptions } from "terser";
 
 export default defineConfig({
   build: {
@@ -9,7 +10,7 @@ export default defineConfig({
       fileName: () => 'index.iife.js'
     },
     outDir: 'dist/browser',              // keeps dist/ tidy
-    minify: 'terser'                     // optional – smaller payload
+    minify: 'esbuild',                    // optional – smaller payload
     // No "external": we want a single self-contained file
   }
 });
