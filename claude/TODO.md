@@ -1,0 +1,1 @@
+Add a playwright test to recorder.spect.Ts that will make sure that once the page has loaded a network call to POST http://localhost:8080/public/captured-sessions is performed and returns to 201

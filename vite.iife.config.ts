@@ -1,11 +1,17 @@
 import { defineConfig } from 'vite';
-import type { MinifyOptions } from "terser";
 
 export default defineConfig({
+  esbuild: {
+    legalComments: "none",     // drop every comment
+    minifyWhitespace: true,
+    minifySyntax: true,
+    minifyIdentifiers: false
+  },
+
   build: {
     lib: {
       entry: 'src/index.ts',
-      name: 'Recorder',                  // global = window.Recorder
+      name: 'scryspell',                  // global = window.Recorder
       formats: ['iife'],
       fileName: () => 'index.iife.js'
     },

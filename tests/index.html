@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recorder Test Studio</title>
+    <script src="../dist/browser/recorder.iife.js"></script>
+    <script>
+        (new window.scryspell.Recorder(window, '01969879-ad58-7e08-9a5a-c3643e90f4ab', { maskingLevel: "none" })).start();
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .test-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .test-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .test-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            background: white;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .checkbox-group, .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-item, .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        input[type="checkbox"], input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            accent-color: #667eea;
+        }
+
+        .interactions-demo {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 3rem;
+        }
+
+        .interactions-demo h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .demo-buttons button {
+            flex: 1;
+        }
+
+        #dynamic-content {
+            min-height: 100px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .dynamic-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 12px;
+            animation: fadeIn 0.5s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .test-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .demo-buttons {
+                flex-direction: column;
+            }
+
+            .demo-buttons button {
+                flex: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .checkbox-group, .radio-group {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>Recorder Test Studio</h1>
+            <p>Interactive testing environment for session recording functionality</p>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>Recording Active</span>
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>📝 Text Inputs</h3>
+                <div class="form-group">
+                    <label for="test-input">Standard Input</label>
+                    <input type="text" id="test-input" placeholder="Type something magical...">
+                </div>
+                <div class="form-group">
+                    <label for="test-textarea">Text Area</label>
+                    <textarea id="test-textarea" placeholder="Write your thoughts here..."></textarea>
+                </div>
+            </div>
+
+            <div class="test-card">
+                <h3>📧 User Information</h3>
+                <div class="form-group">
+                    <label for="test-email">Email Address</label>
+                    <input type="email" id="test-email" placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="test-password">Password</label>
+                    <input type="password" id="test-password" placeholder="••••••••">
+                </div>
+            </div>
+
+            <div class="test-card">
+                <h3>🎛️ Controls</h3>
+                <div class="form-group">
+                    <label for="test-select">Choose Option</label>
+                    <select id="test-select">
+                        <option value="">Select an option...</option>
+                        <option value="option1">🚀 Rocket Mode</option>
+                        <option value="option2">⚡ Lightning Fast</option>
+                        <option value="option3">🌟 Premium Plus</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Preferences</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="test-checkbox">
+                            <label for="test-checkbox">Enable notifications</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Theme</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="test-radio1" name="radio-group" value="light">
+                            <label for="test-radio1">Light</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="test-radio2" name="radio-group" value="dark">
+                            <label for="test-radio2">Dark</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interactions-demo">
+            <h3>🎯 Interactive Elements</h3>
+            <div class="demo-buttons">
+                <button id="test-button" onclick="addDynamicContent()">Add Content</button>
+                <button onclick="clearDynamicContent()">Clear Content</button>
+                <button onclick="animateElements()">Animate</button>
+            </div>
+            <div id="dynamic-content">
+                Click buttons above to see dynamic content changes
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>All interactions are being recorded for testing purposes</p>
+        </div>
+    </div>
+
+    <script>
+        let contentCounter = 0;
+
+        function addDynamicContent() {
+            contentCounter++;
+            const content = document.getElementById('dynamic-content');
+            const newElement = document.createElement('div');
+            newElement.className = 'dynamic-item';
+            newElement.innerHTML = `✨ Dynamic content ${contentCounter} added at ${new Date().toLocaleTimeString()}`;
+            
+            if (contentCounter === 1) {
+                content.innerHTML = '';
+            }
+            content.appendChild(newElement);
+        }
+
+        function clearDynamicContent() {
+            const content = document.getElementById('dynamic-content');
+            content.innerHTML = 'Content cleared! Ready for new additions.';
+            contentCounter = 0;
+        }
+
+        function animateElements() {
+            const cards = document.querySelectorAll('.test-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transform = 'scale(1.05) translateY(-12px)';
+                    setTimeout(() => {
+                        card.style.transform = 'scale(1) translateY(0)';
+                    }, 200);
+                }, index * 100);
+            });
+        }
+    </script>
+</body>
+</html>
