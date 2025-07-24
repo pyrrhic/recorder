@@ -1,9 +1,9 @@
 import axios, {type AxiosInstance, type AxiosRequestConfig} from "axios";
 
 const api: AxiosInstance = axios.create({
-    baseURL: window.location.hostname.includes("localhost")
+    baseURL: import.meta.env.DEV
         ? "http://localhost:8080"
-        : "",
+        : "https://scryspell.com",
     withCredentials: true,
 });
 
