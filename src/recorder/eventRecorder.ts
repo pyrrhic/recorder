@@ -4,7 +4,7 @@ import {MaskingLevel, type RecorderSettings} from "./recorder";
 import {assertNever} from "../utils";
 
 export interface InteractionEvent {
-    eventType: string | "click" | "keydown" | "urlChange" | "change" | "submit";
+    eventType: string | "click" | "keydown" | "page_view" | "change" | "submit";
     tagName?: string | null;
     timestamp: number;
     host: string;
