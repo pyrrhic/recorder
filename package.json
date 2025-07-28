@@ -16,7 +16,7 @@
   "jsdelivr": "./dist/browser/recorder.iife.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pyrrhic/recorder.git"
+    "url": "git+https://github.com/pyrrhic/recorder.git"
   },
   "type": "module",
   "scripts": {

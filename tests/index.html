@@ -358,6 +358,8 @@
             </div>
         </div>
 
+        <div id="react-test-component"></div>
+
         <div class="interactions-demo">
             <h3>🎯 Interactive Elements</h3>
             <div class="demo-buttons">
@@ -374,6 +376,75 @@
             <p>All interactions are being recorded for testing purposes</p>
         </div>
     </div>
+
+    <!-- React from CDN (development versions for better debugging) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const NavigationTestComponent = () => {
+            const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
+            
+            const navigateTo = (path, title) => {
+                window.history.pushState({}, title, path);
+                setCurrentPath(path);
+                
+                // Dispatch a custom event so your recorder can catch it if needed
+                window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
+            };
+            
+            const routes = [
+                { path: '/tests/', title: 'Home', label: '🏠 Home' },
+                { path: '/tests/dashboard', title: 'Dashboard', label: '📊 Dashboard' },
+                { path: '/tests/profile', title: 'Profile', label: '👤 Profile' },
+                { path: '/tests/settings', title: 'Settings', label: '⚙️ Settings' },
+                { path: '/tests/analytics', title: 'Analytics', label: '📈 Analytics' }
+            ];
+            
+            return React.createElement('div', {
+                style: { 
+                    padding: '20px', 
+                    border: '2px solid #667eea', 
+                    borderRadius: '12px',
+                    margin: '20px 0',
+                    background: 'rgba(255, 255, 255, 0.95)'
+                }
+            }, [
+                React.createElement('h3', { 
+                    key: 'title',
+                    style: { marginBottom: '15px', color: '#1f2937' }
+                }, '🧭 Navigation Test Component'),
+                
+                React.createElement('p', { 
+                    key: 'current',
+                    style: { marginBottom: '15px', fontSize: '14px', color: '#6b7280' }
+                }, `Current path: ${currentPath}`),
+                
+                React.createElement('div', {
+                    key: 'nav',
+                    style: { display: 'flex', flexWrap: 'wrap', gap: '10px' }
+                }, routes.map(route => 
+                    React.createElement('button', {
+                        key: route.path,
+                        onClick: () => navigateTo(route.path, route.title),
+                        style: {
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            border: currentPath === route.path ? '2px solid #667eea' : '2px solid #e5e7eb',
+                            background: currentPath === route.path ? '#667eea' : 'white',
+                            color: currentPath === route.path ? 'white' : '#374151',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '500'
+                        }
+                    }, route.label)
+                ))
+            ]);
+        };
+
+        ReactDOM.render(React.createElement(NavigationTestComponent), document.getElementById('react-test-component'));
+    </script>
 
     <script>
         let contentCounter = 0;
