@@ -82,6 +82,7 @@ export class Recorder {
         const viewportWidth  = window.innerWidth  || document.documentElement.clientWidth;
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
         const url = new URL(window.location.href);
+        const host = window.location.hostname;
 
         const utmSource = url.searchParams.get("utm_source") || url.searchParams.get("source") || url.searchParams.get("ref") || undefined;
         const utmMedium = url.searchParams.get("utm_medium") || url.searchParams.get("medium") || undefined;
@@ -101,6 +102,7 @@ export class Recorder {
             referringDomain,
             viewportWidth,
             viewportHeight,
+            host,
             utmSource,
             utmMedium,
             utmCampaign,
@@ -133,6 +135,7 @@ export interface CapturedUserMetadata {
     referringDomain?: string;
     viewportWidth?: number;
     viewportHeight?: number;
+    host?: string;
     utmSource?: string;
     utmMedium?: string;
     utmCampaign?: string;
