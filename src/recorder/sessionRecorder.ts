@@ -44,14 +44,20 @@ export class SessionRecorder {
             blockClass: "scry-block"
         };
 
+        const maskFn = (input: string) => input.replaceAll(/\S/g, "*");
+
         switch (this.recorderSettings.maskingLevel) {
             case MaskingLevel.None:
                 break;
             case MaskingLevel.All:
-                recordOptions.maskTextFn = (input: string) => input.replaceAll(/./g, "*");
+                recordOptions.maskTextFn = maskFn;
+                recordOptions.maskTextSelector = "*";
+                recordOptions.maskAllInputs = true;
+                recordOptions.maskInputFn = maskFn;
                 break;
             case null:
             case MaskingLevel.InputAndTextArea:
+                logger.error("masking level: input and textarea");
                 recordOptions.maskAllInputs = true;
                 break;
             case MaskingLevel.InputPasswordOrEmailAndTextArea:

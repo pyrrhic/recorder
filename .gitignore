@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 *.iml
+
+# Local documentation
+publishInstructions.md

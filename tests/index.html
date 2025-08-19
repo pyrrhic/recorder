@@ -6,8 +6,9 @@
     <title>Recorder Test Studio</title>
     <script src="../dist/browser/recorder.iife.js"></script>
     <script>
-        (new window.scryspell.Recorder(window, '01969879-ad58-7e08-9a5a-c3643e90f4ab', { maskingLevel: "none" })).start();
+        (new window.scryspell.Recorder(window, '0198c2ad-d505-7662-b650-51d3e8f299fe', { maskingLevel: "none" })).start();
     </script>
+
     <style>
         * {
             margin: 0;
@@ -363,7 +364,7 @@
         <div class="interactions-demo">
             <h3>🎯 Interactive Elements</h3>
             <div class="demo-buttons">
-                <button id="test-button" onclick="addDynamicContent()">Add Content</button>
+                <button id="test-button" class="scry-block" onclick="addDynamicContent()">Add Content</button>
                 <button onclick="clearDynamicContent()">Clear Content</button>
                 <button onclick="animateElements()">Animate</button>
             </div>
