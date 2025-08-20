@@ -2,8 +2,7 @@ import {record} from "rrweb";
 import {patch} from "../requests";
 import {logger} from "../logger";
 import type {recordOptions} from "rrweb/typings/types";
-import {MaskingLevel, type RecorderSettings} from "./recorder";
-import {assertNever} from "../utils";
+import {type RecorderSettings} from "./recorder";
 import type {eventWithTime, listenerHandler} from "@rrweb/types";
 
 
@@ -47,20 +46,18 @@ export class SessionRecorder {
         const maskFn = (input: string) => input.replaceAll(/\S/g, "*");
 
         switch (this.recorderSettings.maskingLevel) {
-            case MaskingLevel.None:
+            case "none":
                 break;
-            case MaskingLevel.All:
+            case "all":
                 recordOptions.maskTextFn = maskFn;
                 recordOptions.maskTextSelector = "*";
                 recordOptions.maskAllInputs = true;
                 recordOptions.maskInputFn = maskFn;
                 break;
-            case null:
-            case MaskingLevel.InputAndTextArea:
-                logger.error("masking level: input and textarea");
+            case "input-and-textarea":
                 recordOptions.maskAllInputs = true;
                 break;
-            case MaskingLevel.InputPasswordOrEmailAndTextArea:
+            case "input-password-or-email-and-textarea":
                 recordOptions.maskInputOptions = {
                     password: true,
                     email: true,
@@ -68,7 +65,10 @@ export class SessionRecorder {
                 };
                 break;
             default:
-                assertNever(this.recorderSettings.maskingLevel);
+                recordOptions.maskTextFn = maskFn;
+                recordOptions.maskTextSelector = "*";
+                recordOptions.maskAllInputs = true;
+                recordOptions.maskInputFn = maskFn;
         }
 
         this.stopFn = record(recordOptions);

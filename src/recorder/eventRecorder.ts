@@ -1,6 +1,6 @@
 import {logger} from "../logger";
 import {post} from "../requests";
-import {MaskingLevel, type RecorderSettings} from "./recorder";
+import {type RecorderSettings} from "./recorder";
 import {assertNever} from "../utils";
 
 export interface InteractionEvent {
@@ -226,18 +226,17 @@ export class EventRecorder {
         }
 
         switch (this.recorderSettings.maskingLevel) {
-            case MaskingLevel.None:
+            case "none":
                 break;
-            case MaskingLevel.All:
+            case "all":
                 text = null;
                 break;
-            case null:
-            case MaskingLevel.InputAndTextArea:
+            case "input-and-textarea":
                 break;
-            case MaskingLevel.InputPasswordOrEmailAndTextArea:
+            case "input-password-or-email-and-textarea":
                 break;
             default:
-                assertNever(this.recorderSettings.maskingLevel);
+                text = null;
         }
 
         return {
@@ -277,18 +276,17 @@ export class EventRecorder {
         }
 
         switch (this.recorderSettings.maskingLevel) {
-            case MaskingLevel.None:
+            case "none":
                 break;
-            case MaskingLevel.All:
+            case "all":
                 text = null;
                 break;
-            case null:
-            case MaskingLevel.InputAndTextArea:
+            case "input-and-textarea":
                 if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
                     text = null;
                 }
                 break;
-            case MaskingLevel.InputPasswordOrEmailAndTextArea:
+            case "input-password-or-email-and-textarea":
                 if (target instanceof HTMLTextAreaElement) {
                     text = null;
                 } else if (target instanceof HTMLInputElement) {
@@ -298,7 +296,7 @@ export class EventRecorder {
                 }
                 break;
             default:
-                assertNever(this.recorderSettings.maskingLevel);
+                text = null;
         }
 
         return {
@@ -331,18 +329,17 @@ export class EventRecorder {
         }
 
         switch (this.recorderSettings.maskingLevel) {
-            case MaskingLevel.None:
+            case "none":
                 break;
-            case MaskingLevel.All:
+            case "all":
                 text = null;
                 break;
-            case null:
-            case MaskingLevel.InputAndTextArea:
+            case "input-and-textarea":
                 if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
                     text = null;
                 }
                 break;
-            case MaskingLevel.InputPasswordOrEmailAndTextArea:
+            case "input-password-or-email-and-textarea":
                 if (target instanceof HTMLTextAreaElement) {
                     text = null;
                 } else if (target instanceof HTMLInputElement) {
@@ -352,7 +349,7 @@ export class EventRecorder {
                 }
                 break;
             default:
-                assertNever(this.recorderSettings.maskingLevel);
+                text = null;
         }
 
         return {

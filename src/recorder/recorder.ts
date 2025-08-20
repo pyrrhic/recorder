@@ -10,9 +10,9 @@ export class Recorder {
     private pingIntervalMs = 20000;
     private pingTimeout: NodeJS.Timeout | null = null;
 
-    constructor(private window: Window, private publicToken: string, private recorderSettings: RecorderSettings) {
+    constructor(private window: Window, private publicToken: string, private recorderSettings: RecorderSettings = {}) {
         if (recorderSettings.maskingLevel == null) {
-            recorderSettings.maskingLevel = MaskingLevel.InputAndTextArea;
+            recorderSettings.maskingLevel = "all";
         }
 
         this.sessionRecorder = new SessionRecorder(recorderSettings);
@@ -113,14 +113,7 @@ export class Recorder {
 }
 
 export interface RecorderSettings {
-    maskingLevel: MaskingLevel | null,
-}
-
-export enum MaskingLevel {
-    None = "none",
-    All = "all",
-    InputAndTextArea = "input-and-textarea",
-    InputPasswordOrEmailAndTextArea = "input-password-or-email-and-textarea"
+    maskingLevel?: "none" | "all" | "input-and-textarea" | "input-password-or-email-and-textarea",
 }
 
 export interface CapturedUserMetadata {

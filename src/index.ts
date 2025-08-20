@@ -1,1 +1,1 @@
-export { Recorder, type RecorderSettings, MaskingLevel } from './recorder/recorder';
+export { Recorder, type RecorderSettings } from './recorder/recorder';
