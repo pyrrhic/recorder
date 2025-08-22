@@ -1,11 +1,13 @@
 import {SessionRecorder} from "./sessionRecorder";
 import {EventRecorder} from "./eventRecorder";
+import {ErrorRecorder} from "./errorRecorder";
 import {post, put} from "../requests";
 import {UAParser} from "ua-parser-js";
 
 export class Recorder {
     private sessionRecorder: SessionRecorder;
     private eventRecorder: EventRecorder;
+    private errorRecorder: ErrorRecorder;
     private capturedSessionId: String | null = null;
     private pingIntervalMs = 20000;
     private pingTimeout: NodeJS.Timeout | null = null;
@@ -17,6 +19,7 @@ export class Recorder {
 
         this.sessionRecorder = new SessionRecorder(recorderSettings);
         this.eventRecorder = new EventRecorder(window, recorderSettings);
+        this.errorRecorder = new ErrorRecorder(window, recorderSettings);
 
          post(`public/captured-sessions`, { publicToken }, { withCredentials: false })
             .then(response => {
@@ -24,6 +27,7 @@ export class Recorder {
                 this.capturedSessionId = id;
                 this.sessionRecorder.setCapturedSessionId(id);
                 this.eventRecorder.setCapturedSessionId(id);
+                this.errorRecorder.setCapturedSessionId(id);
                 this.schedulePing();
                 const capturedUserMetadata = this.collectCapturedUserMetadata();
                 post(`public/captured-sessions/${this.capturedSessionId}/captured-session/metadata`, capturedUserMetadata, { withCredentials: false });
@@ -32,6 +36,7 @@ export class Recorder {
                 console.error(error);
                 this.sessionRecorder.stop();
                 this.eventRecorder.stop();
+                this.errorRecorder.stop();
             })
     }
 
@@ -50,19 +55,21 @@ export class Recorder {
     }
 
     /**
-     * Start both recorders
+     * Start all recorders
      */
     public start() {
         this.sessionRecorder.start();
         this.eventRecorder.start();
+        this.errorRecorder.start();
     }
 
     /**
-     * Stop both recorders
+     * Stop all recorders
      */
     public stop() {
         this.sessionRecorder.stop();
         this.eventRecorder.stop();
+        this.errorRecorder.stop();
     }
 
     private collectCapturedUserMetadata = (): CapturedUserMetadata => {
