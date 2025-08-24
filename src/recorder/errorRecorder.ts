@@ -1,16 +1,13 @@
 // Captures console errors, warnings, and uncaught errors/promise rejections
 // Buffers error events and flushes to API endpoint periodically similar to EventRecorder
 import {logger} from "../logger";
-import {post} from "../requests";
-import {type RecorderSettings} from "./recorder";
+import {post} from "../requests.ts";
 
 export interface ConsoleError {
     errorType: "console_error" | "console_warn" | "uncaught_error" | "unhandled_rejection";
     message: string;
     stack?: string;
     timestamp: number;
-    host: string;
-    path: string;
     source?: string; // file/line info
 }
 
@@ -23,7 +20,7 @@ export class ErrorRecorder {
     private originalConsoleError: typeof console.error;
     private originalConsoleWarn: typeof console.warn;
 
-    constructor(private window: Window, private recorderSettings: RecorderSettings) {
+    constructor(private window: Window) {
         this.originalConsoleError = console.error.bind(console);
         this.originalConsoleWarn = console.warn.bind(console);
     }
@@ -86,9 +83,7 @@ export class ErrorRecorder {
             const error: ConsoleError = {
                 errorType,
                 message,
-                timestamp: Date.now(),
-                host: this.window.location.hostname,
-                path: this.window.location.pathname
+                timestamp: Date.now()
             };
 
             // Try to extract stack trace if available
@@ -113,8 +108,6 @@ export class ErrorRecorder {
                 message: event.message,
                 stack: event.error?.stack,
                 timestamp: Date.now(),
-                host: this.window.location.hostname,
-                path: this.window.location.pathname,
                 source: event.filename ? `${event.filename}:${event.lineno}:${event.colno}` : undefined
             };
 
@@ -144,9 +137,7 @@ export class ErrorRecorder {
                 errorType: "unhandled_rejection",
                 message,
                 stack,
-                timestamp: Date.now(),
-                host: this.window.location.hostname,
-                path: this.window.location.pathname
+                timestamp: Date.now()
             };
 
             this.errorsBuffer.push(error);
@@ -165,10 +156,7 @@ export class ErrorRecorder {
     private flush = async () => {
         if (this.errorsBuffer.length > 0 && this.capturedSessionId) {
             try {
-                // TODO: Replace with actual API endpoint when ready
-                // const response = await post(`/public/captured-sessions/${this.capturedSessionId}/console-errors`, this.errorsBuffer, { withCredentials: false });
-                // For now, just log to show it's working
-                logger.error("ErrorRecorder would flush errors:", this.errorsBuffer);
+                const response = await post(`/public/captured-sessions/${this.capturedSessionId}/console-errors`, this.errorsBuffer, { withCredentials: false });
                 this.errorsBuffer = [];
             } catch (error) {
                 logger.error("Failed to flush console errors", error);

@@ -6,9 +6,11 @@
     <title>Recorder Test Studio</title>
     <script src="../dist/browser/recorder.iife.js"></script>
     <script>
-        (new window.scryspell.Recorder(window, '0198c829-bf64-7cd6-8c3e-353ddffebb82', { maskingLevel: "all" })).start();
+        (new window.scryspell.Recorder(window, '0198cd92-6b50-7098-8b71-ec86549dc6a8', { maskingLevel: "all" })).start();
     </script>
-
+    <script>
+        setTimeout(() => { throw new Error('Test error'); }, 1000);
+    </script>
     <style>
         * {
             margin: 0;

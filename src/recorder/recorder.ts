@@ -19,7 +19,7 @@ export class Recorder {
 
         this.sessionRecorder = new SessionRecorder(recorderSettings);
         this.eventRecorder = new EventRecorder(window, recorderSettings);
-        this.errorRecorder = new ErrorRecorder(window, recorderSettings);
+        this.errorRecorder = new ErrorRecorder(window);
 
          post(`public/captured-sessions`, { publicToken }, { withCredentials: false })
             .then(response => {
