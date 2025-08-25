@@ -14,7 +14,7 @@ export class Recorder {
     private pingIntervalMs = 20000;
     private pingTimeout: NodeJS.Timeout | null = null;
 
-    constructor(private window: Window, private publicToken: string, private recorderSettings: RecorderSettings = {}) {
+    constructor(private window: Window, private publicToken: string, private recorderSettings: RecorderSettings = { consoleErrorRecording: { enabled: false }, networkRecording: { enabled: false} }) {
         if (recorderSettings.maskingLevel == null) {
             recorderSettings.maskingLevel = "all";
         }
@@ -22,7 +22,7 @@ export class Recorder {
         this.sessionRecorder = new SessionRecorder(recorderSettings);
         this.eventRecorder = new EventRecorder(window, recorderSettings);
         this.errorRecorder = new ErrorRecorder(window, recorderSettings.consoleErrorRecording);
-        this.networkRecorder = new NetworkRecorder(window, recorderSettings);
+        this.networkRecorder = new NetworkRecorder(window);
         
         // Configure network recording if settings provided
         if (recorderSettings.networkRecording) {
@@ -144,6 +144,8 @@ export interface RecorderSettings {
         captureHeaders?: boolean;
         captureRequestBodies?: boolean;
         captureResponseBodies?: boolean;
+        excludeHeaders?: string[];
+        requestBodyMaskingFunction?: (body: string) => string;
     };
 }
 

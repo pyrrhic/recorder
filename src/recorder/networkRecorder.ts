@@ -1,6 +1,5 @@
 import {logger} from "../logger";
 import {post} from "../requests";
-import {type RecorderSettings} from "./recorder";
 
 export interface NetworkRequest {
     requestId: string;
@@ -25,6 +24,8 @@ interface NetworkRecorderSettings {
     captureHeaders: boolean;
     captureRequestBodies: boolean;
     captureResponseBodies: boolean;
+    excludeHeaders: string[];
+    requestBodyMaskingFunction?: (body: string) => string;
 }
 
 export class NetworkRecorder {
@@ -53,10 +54,11 @@ export class NetworkRecorder {
         excludeDomains: [],
         captureHeaders: false,
         captureRequestBodies: false,
-        captureResponseBodies: true
+        captureResponseBodies: true,
+        excludeHeaders: []
     };
 
-    constructor(private window: Window, private recorderSettings: RecorderSettings) {
+    constructor(private window: Window) {
         this.originalFetch = this.window.fetch.bind(this.window);
         this.originalXHROpen = XMLHttpRequest.prototype.open;
         this.originalXHRSend = XMLHttpRequest.prototype.send;
@@ -401,22 +403,23 @@ export class NetworkRecorder {
 
     private filterHeaders(headers: Record<string, string>): Record<string, string> {
         const filtered: Record<string, string> = {};
-        const sensitiveHeaders = new Set([
+        const defaultSensitiveHeaders = new Set([
             'authorization', 'cookie', 'x-api-key', 'x-auth-token', 
             'x-csrf-token', 'x-session-token', 'set-cookie'
         ]);
+        
+        // Combine default sensitive headers with user-specified excluded headers
+        const excludedHeaders = new Set([
+            ...defaultSensitiveHeaders,
+            ...this.networkSettings.excludeHeaders.map(h => h.toLowerCase())
+        ]);
 
         for (const [key, value] of Object.entries(headers)) {
-            if (sensitiveHeaders.has(key.toLowerCase())) {
-                filtered[key] = "$redacted";
-            } else {
-                // Apply masking based on recorder settings
-                if (this.recorderSettings.maskingLevel === "all") {
-                    filtered[key] = "$masked";
-                } else {
-                    filtered[key] = value;
-                }
+            if (excludedHeaders.has(key.toLowerCase())) {
+                // Don't record excluded headers
+                continue;
             }
+            filtered[key] = value;
         }
 
         return filtered;
@@ -425,10 +428,10 @@ export class NetworkRecorder {
     private truncateContent(content: string | undefined, maxSize: number): string | undefined {
         if (!content) return content;
         
-        // Apply masking based on recorder settings
+        // Apply masking function if provided
         let processedContent = content;
-        if (this.recorderSettings.maskingLevel === "all") {
-            processedContent = "$masked";
+        if (this.networkSettings.requestBodyMaskingFunction) {
+            processedContent = this.networkSettings.requestBodyMaskingFunction(content);
         }
         
         if (processedContent.length > maxSize) {
