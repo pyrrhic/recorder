@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Recording Masking Test</title>
+    <script src="../dist/browser/recorder.iife.js"></script>
+    <script>
+        // Initialize recorder with network recording enabled and "all" masking level
+        const recorder = new window.scryspell.Recorder(window, '0198cd92-6b50-7098-8b71-ec86549dc6a8', { 
+            maskingLevel: "all", // This should mask headers and body content
+            networkRecording: {
+                enabled: true,
+                captureHeaders: true,
+                captureRequestBodies: true,
+                captureResponseBodies: true
+            }
+        });
+        recorder.start();
+    </script>
+</head>
+<body>
+    <h1>Network Recording Masking Test Page</h1>
+    <p>This page tests that network recording respects masking level settings.</p>
+    
+    <div id="results"></div>
+    
+    <script>
+        // The test will trigger requests from this page via page.evaluate()
+    </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import {SessionRecorder} from "./sessionRecorder";
 import {EventRecorder} from "./eventRecorder";
 import {ErrorRecorder} from "./errorRecorder";
+import {NetworkRecorder} from "./networkRecorder";
 import {post, put} from "../requests";
 import {UAParser} from "ua-parser-js";
 
@@ -8,6 +9,7 @@ export class Recorder {
     private sessionRecorder: SessionRecorder;
     private eventRecorder: EventRecorder;
     private errorRecorder: ErrorRecorder;
+    private networkRecorder: NetworkRecorder;
     private capturedSessionId: String | null = null;
     private pingIntervalMs = 20000;
     private pingTimeout: NodeJS.Timeout | null = null;
@@ -19,7 +21,13 @@ export class Recorder {
 
         this.sessionRecorder = new SessionRecorder(recorderSettings);
         this.eventRecorder = new EventRecorder(window, recorderSettings);
-        this.errorRecorder = new ErrorRecorder(window);
+        this.errorRecorder = new ErrorRecorder(window, recorderSettings.consoleErrorRecording);
+        this.networkRecorder = new NetworkRecorder(window, recorderSettings);
+        
+        // Configure network recording if settings provided
+        if (recorderSettings.networkRecording) {
+            this.networkRecorder.updateSettings(recorderSettings.networkRecording);
+        }
 
          post(`public/captured-sessions`, { publicToken }, { withCredentials: false })
             .then(response => {
@@ -28,6 +36,7 @@ export class Recorder {
                 this.sessionRecorder.setCapturedSessionId(id);
                 this.eventRecorder.setCapturedSessionId(id);
                 this.errorRecorder.setCapturedSessionId(id);
+                this.networkRecorder.setCapturedSessionId(id);
                 this.schedulePing();
                 const capturedUserMetadata = this.collectCapturedUserMetadata();
                 post(`public/captured-sessions/${this.capturedSessionId}/captured-session/metadata`, capturedUserMetadata, { withCredentials: false });
@@ -37,6 +46,7 @@ export class Recorder {
                 this.sessionRecorder.stop();
                 this.eventRecorder.stop();
                 this.errorRecorder.stop();
+                this.networkRecorder.stop();
             })
     }
 
@@ -61,6 +71,7 @@ export class Recorder {
         this.sessionRecorder.start();
         this.eventRecorder.start();
         this.errorRecorder.start();
+        this.networkRecorder.start();
     }
 
     /**
@@ -70,6 +81,7 @@ export class Recorder {
         this.sessionRecorder.stop();
         this.eventRecorder.stop();
         this.errorRecorder.stop();
+        this.networkRecorder.stop();
     }
 
     private collectCapturedUserMetadata = (): CapturedUserMetadata => {
@@ -121,6 +133,18 @@ export class Recorder {
 
 export interface RecorderSettings {
     maskingLevel?: "none" | "all" | "input-and-textarea" | "input-password-or-email-and-textarea",
+    consoleErrorRecording?: {
+        enabled: boolean;
+    };
+    networkRecording?: {
+        enabled: boolean;
+        maxRequestBodySize?: number;
+        maxResponseBodySize?: number;
+        excludeDomains?: string[];
+        captureHeaders?: boolean;
+        captureRequestBodies?: boolean;
+        captureResponseBodies?: boolean;
+    };
 }
 
 export interface CapturedUserMetadata {

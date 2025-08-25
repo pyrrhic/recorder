@@ -1,7 +1,7 @@
 // Captures console errors, warnings, and uncaught errors/promise rejections
 // Buffers error events and flushes to API endpoint periodically similar to EventRecorder
 import {logger} from "../logger";
-import {post} from "../requests.ts";
+import {post} from "../requests";
 
 export interface ConsoleError {
     errorType: "console_error" | "console_warn" | "uncaught_error" | "unhandled_rejection";
@@ -19,14 +19,16 @@ export class ErrorRecorder {
     private flushTimerId: ReturnType<typeof setTimeout> | null = null;
     private originalConsoleError: typeof console.error;
     private originalConsoleWarn: typeof console.warn;
+    private enabled: boolean;
 
-    constructor(private window: Window) {
+    constructor(private window: Window, consoleErrorSettings?: { enabled: boolean }) {
         this.originalConsoleError = console.error.bind(console);
         this.originalConsoleWarn = console.warn.bind(console);
+        this.enabled = consoleErrorSettings?.enabled ?? true; // Default enabled for backwards compatibility
     }
 
     public start = () => {
-        if (this.isRunning) {
+        if (this.isRunning || !this.enabled) {
             return;
         }
         this.isRunning = true;
