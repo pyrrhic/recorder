@@ -58,10 +58,14 @@ export class NetworkRecorder {
         excludeHeaders: []
     };
 
-    constructor(private window: Window) {
+    constructor(private window: Window, settings?: Partial<NetworkRecorderSettings>) {
         this.originalFetch = this.window.fetch.bind(this.window);
         this.originalXHROpen = XMLHttpRequest.prototype.open;
         this.originalXHRSend = XMLHttpRequest.prototype.send;
+        
+        if (settings) {
+            this.networkSettings = { ...this.networkSettings, ...settings };
+        }
     }
 
     public start = () => {
@@ -94,9 +98,6 @@ export class NetworkRecorder {
         this.capturedSessionId = uuid;
     }
 
-    public updateSettings(settings: Partial<NetworkRecorderSettings>) {
-        this.networkSettings = { ...this.networkSettings, ...settings };
-    }
 
     private scheduleFlush = () => {
         if (this.flushTimerId) {

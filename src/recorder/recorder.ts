@@ -22,12 +22,7 @@ export class Recorder {
         this.sessionRecorder = new SessionRecorder(recorderSettings);
         this.eventRecorder = new EventRecorder(window, recorderSettings);
         this.errorRecorder = new ErrorRecorder(window, recorderSettings.consoleErrorRecording);
-        this.networkRecorder = new NetworkRecorder(window);
-        
-        // Configure network recording if settings provided
-        if (recorderSettings.networkRecording) {
-            this.networkRecorder.updateSettings(recorderSettings.networkRecording);
-        }
+        this.networkRecorder = new NetworkRecorder(window, recorderSettings.networkRecording);
 
          post(`public/captured-sessions`, { publicToken }, { withCredentials: false })
             .then(response => {
