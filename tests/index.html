@@ -6,13 +6,13 @@
     <title>Recorder Test Studio</title>
     <script src="../dist/browser/recorder.iife.js"></script>
     <script>
-        (new window.scryspell.Recorder(window, '0198cd92-6b50-7098-8b71-ec86549dc6a8', { 
+        (new window.scryspell.Recorder(window, '0198cd92-6b50-7098-8b71-ec86549dc6a8', {
             maskingLevel: "all",
+            consoleRecording: {
+                enabled: true,
+            },
             networkRecording: {
                 enabled: true,
-                captureHeaders: true,
-                captureRequestBodies: true,
-                captureResponseBodies: true,
                 excludeDomains: ['excluded-domain.com']
             }
         })).start();

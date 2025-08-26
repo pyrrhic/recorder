@@ -25,6 +25,7 @@ export default defineConfig({
         outDir: 'dist/browser',
         emptyOutDir: true,
         minify: 'esbuild',
+        sourcemap: true,
     },
     plugins: [
         dts({ outDir: 'dist/browser' })

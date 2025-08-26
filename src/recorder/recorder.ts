@@ -19,7 +19,7 @@ export class Recorder {
         // Default settings
         const defaultSettings: RecorderSettings = {
             maskingLevel: "all",
-            consoleErrorRecording: { enabled: false },
+            consoleRecording: { enabled: false },
             networkRecording: {
                 enabled: false,
                 maxRequestBodySize: 10 * 1024,
@@ -36,9 +36,9 @@ export class Recorder {
         this.recorderSettings = {
             ...defaultSettings,
             ...userSettings,
-            consoleErrorRecording: {
-                ...defaultSettings.consoleErrorRecording,
-                ...(userSettings.consoleErrorRecording || {})
+            consoleRecording: {
+                ...defaultSettings.consoleRecording,
+                ...(userSettings.consoleRecording || {})
             },
             networkRecording: {
                 ...defaultSettings.networkRecording,
@@ -48,7 +48,7 @@ export class Recorder {
 
         this.sessionRecorder = new SessionRecorder(this.recorderSettings);
         this.eventRecorder = new EventRecorder(window, this.recorderSettings);
-        this.errorRecorder = new ErrorRecorder(window, this.recorderSettings.consoleErrorRecording);
+        this.errorRecorder = new ErrorRecorder(window, this.recorderSettings.consoleRecording);
         this.networkRecorder = new NetworkRecorder(window, this.recorderSettings.networkRecording);
 
          post(`public/captured-sessions`, { publicToken }, { withCredentials: false })
@@ -155,7 +155,7 @@ export class Recorder {
 
 export interface RecorderSettings {
     maskingLevel: "none" | "all" | "input-and-textarea" | "input-password-or-email-and-textarea";
-    consoleErrorRecording: {
+    consoleRecording: {
         enabled: boolean;
     };
     networkRecording: {
