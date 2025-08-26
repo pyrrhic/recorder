@@ -443,7 +443,7 @@ export class NetworkRecorder {
     }
 
     private generateRequestId(): string {
-        return `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        return `req_${crypto.randomUUID()}`;
     }
 
     private addCompletedRequest(requestId: string, request: NetworkRequest) {

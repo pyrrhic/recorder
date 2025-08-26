@@ -10,19 +10,46 @@ export class Recorder {
     private eventRecorder: EventRecorder;
     private errorRecorder: ErrorRecorder;
     private networkRecorder: NetworkRecorder;
+    private recorderSettings: RecorderSettings;
     private capturedSessionId: String | null = null;
     private pingIntervalMs = 20000;
     private pingTimeout: NodeJS.Timeout | null = null;
 
-    constructor(private window: Window, private publicToken: string, private recorderSettings: RecorderSettings = { consoleErrorRecording: { enabled: false }, networkRecording: { enabled: false} }) {
-        if (recorderSettings.maskingLevel == null) {
-            recorderSettings.maskingLevel = "all";
-        }
+    constructor(private window: Window, private publicToken: string, userSettings: Partial<RecorderSettings> = {}) {
+        // Default settings
+        const defaultSettings: RecorderSettings = {
+            maskingLevel: "all",
+            consoleErrorRecording: { enabled: false },
+            networkRecording: {
+                enabled: false,
+                maxRequestBodySize: 10 * 1024,
+                maxResponseBodySize: 50 * 1024,
+                excludeDomains: [],
+                captureHeaders: true,
+                captureRequestBodies: true,
+                captureResponseBodies: true,
+                excludeHeaders: []
+            }
+        };
 
-        this.sessionRecorder = new SessionRecorder(recorderSettings);
-        this.eventRecorder = new EventRecorder(window, recorderSettings);
-        this.errorRecorder = new ErrorRecorder(window, recorderSettings.consoleErrorRecording);
-        this.networkRecorder = new NetworkRecorder(window, recorderSettings.networkRecording);
+        // Merge user settings with defaults
+        this.recorderSettings = {
+            ...defaultSettings,
+            ...userSettings,
+            consoleErrorRecording: {
+                ...defaultSettings.consoleErrorRecording,
+                ...(userSettings.consoleErrorRecording || {})
+            },
+            networkRecording: {
+                ...defaultSettings.networkRecording,
+                ...(userSettings.networkRecording || {})
+            }
+        };
+
+        this.sessionRecorder = new SessionRecorder(this.recorderSettings);
+        this.eventRecorder = new EventRecorder(window, this.recorderSettings);
+        this.errorRecorder = new ErrorRecorder(window, this.recorderSettings.consoleErrorRecording);
+        this.networkRecorder = new NetworkRecorder(window, this.recorderSettings.networkRecording);
 
          post(`public/captured-sessions`, { publicToken }, { withCredentials: false })
             .then(response => {
@@ -127,19 +154,19 @@ export class Recorder {
 }
 
 export interface RecorderSettings {
-    maskingLevel?: "none" | "all" | "input-and-textarea" | "input-password-or-email-and-textarea",
-    consoleErrorRecording?: {
+    maskingLevel: "none" | "all" | "input-and-textarea" | "input-password-or-email-and-textarea";
+    consoleErrorRecording: {
         enabled: boolean;
     };
-    networkRecording?: {
+    networkRecording: {
         enabled: boolean;
-        maxRequestBodySize?: number;
-        maxResponseBodySize?: number;
-        excludeDomains?: string[];
-        captureHeaders?: boolean;
-        captureRequestBodies?: boolean;
-        captureResponseBodies?: boolean;
-        excludeHeaders?: string[];
+        maxRequestBodySize: number;
+        maxResponseBodySize: number;
+        excludeDomains: string[];
+        captureHeaders: boolean;
+        captureRequestBodies: boolean;
+        captureResponseBodies: boolean;
+        excludeHeaders: string[];
         requestBodyMaskingFunction?: (body: string) => string;
     };
 }

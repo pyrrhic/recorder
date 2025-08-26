@@ -24,7 +24,7 @@ export class ErrorRecorder {
     constructor(private window: Window, consoleErrorSettings?: { enabled: boolean }) {
         this.originalConsoleError = console.error.bind(console);
         this.originalConsoleWarn = console.warn.bind(console);
-        this.enabled = consoleErrorSettings?.enabled ?? true; // Default enabled for backwards compatibility
+        this.enabled = consoleErrorSettings?.enabled ?? false; // Default enabled for backwards compatibility
     }
 
     public start = () => {
