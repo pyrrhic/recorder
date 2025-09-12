@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Network Recording Test</title>
+    <script src="../dist/browser/recorder.iife.js"></script>
+    <script>
+        // Initialize recorder with network recording enabled
+        const recorder = new window.scryspell.Recorder(window, '0198cd92-6b50-7098-8b71-ec86549dc6a8', { 
+            maskingLevel: "none",
+            networkRecording: {
+                enabled: true,
+                captureHeaders: true,
+                captureRequestBodies: true,
+                captureResponseBodies: true,
+                maxRequestBodySize: 1024,
+                maxResponseBodySize: 2048,
+                excludeDomains: []
+            }
+        });
+        recorder.start();
+    </script>
+</head>
+<body>
+    <h1>Error Network Recording Test Page</h1>
+    <p>This page is used for testing error-only network request recording functionality.</p>
+    
+    <button onclick="makeErrorFetchRequest()">Make Error Fetch Request (404)</button>
+    <button onclick="makeErrorXHRRequest()">Make Error XHR Request (500)</button>
+    <button onclick="makeNetworkErrorRequest()">Make Network Error Request</button>
+    <button onclick="makeSuccessfulRequest()">Make Successful Request (should not be recorded)</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        function makeErrorFetchRequest() {
+            fetch('https://httpbin.org/status/404')
+                .then(response => {
+                    document.getElementById('results').innerHTML += '<p>404 Fetch: ' + response.status + '</p>';
+                })
+                .catch(error => {
+                    document.getElementById('results').innerHTML += '<p>404 Fetch Error: ' + error.message + '</p>';
+                });
+        }
+        
+        function makeErrorXHRRequest() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'https://httpbin.org/status/500');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    document.getElementById('results').innerHTML += '<p>500 XHR: ' + xhr.status + '</p>';
+                }
+            };
+            xhr.send();
+        }
+        
+        function makeNetworkErrorRequest() {
+            fetch('https://nonexistent-domain-that-will-fail-12345.com/api')
+                .then(response => {
+                    document.getElementById('results').innerHTML += '<p>Network success: ' + response.status + '</p>';
+                })
+                .catch(error => {
+                    document.getElementById('results').innerHTML += '<p>Network Error: ' + error.message + '</p>';
+                });
+        }
+        
+        function makeSuccessfulRequest() {
+            fetch('https://httpbin.org/status/200')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('results').innerHTML += '<p>Success: Should not be recorded</p>';
+                })
+                .catch(error => {
+                    document.getElementById('results').innerHTML += '<p>Success Error: ' + error.message + '</p>';
+                });
+        }
+    </script>
+</body>
+</html>

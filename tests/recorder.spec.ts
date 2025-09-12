@@ -358,11 +358,142 @@ test.describe('Recorder E2E Tests', () => {
       expect(internalRequest).toBeUndefined();
     });
 
-    test('should handle request and response timing correctly', async ({ page }) => {
+    test('should only record error requests (4xx, 5xx, network failures)', async ({ page }) => {
+      let networkRequests: any[] = [];
+      
+      // Setup API mocks - but don't mock error responses, let them fail naturally
+      await page.route('http://localhost:8080/public/captured-sessions', (route: any) => {
+        route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify('test-session-id-123')
+        });
+      });
+      
+      await page.route('https://scryspell.com/public/captured-sessions', (route: any) => {
+        route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify('test-session-id-123')
+        });
+      });
+
+      // Mock recorder API endpoints
+      const successResponse = { status: 201, contentType: 'application/json', body: JSON.stringify({ success: true }) };
+      const pingResponse = { status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) };
+
+      await page.route('**/ui-events', (route: any) => route.fulfill(successResponse));
+      await page.route('**/network-requests', (route: any) => route.fulfill(successResponse));
+      await page.route('**/recording', (route: any) => route.fulfill(successResponse));
+      await page.route('**/console-errors', (route: any) => route.fulfill(successResponse));
+      await page.route('**/ping', (route: any) => route.fulfill(pingResponse));
+      await page.route('**/metadata', (route: any) => route.fulfill(successResponse));
+
+      // Mock different HTTP status codes for testing
+      await page.route('https://httpbin.org/status/200', (route: any) => {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true })
+        });
+      });
+
+      await page.route('https://httpbin.org/status/404', (route: any) => {
+        route.fulfill({
+          status: 404,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Not Found' })
+        });
+      });
+
+      await page.route('https://httpbin.org/status/500', (route: any) => {
+        route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Internal Server Error' })
+        });
+      });
+
+      // Let network errors fail naturally by not intercepting them
+      
+      page.on('request', request => {
+        if (request.url().includes('/network-requests') && request.method() === 'POST') {
+          networkRequests.push({
+            postData: request.postData()
+          });
+        }
+      });
+
+      const testPagePath = resolve(__dirname, 'error-network-test.html');
+      await page.goto(`file://${testPagePath}`);
+
+      await page.waitForTimeout(2000);
+
+      // Make various requests - only errors should be recorded
+      await page.evaluate(() => {
+        // This should NOT be recorded (200 success)
+        fetch('https://httpbin.org/status/200').catch(() => {});
+        
+        // This should be recorded (404 error)
+        fetch('https://httpbin.org/status/404').catch(() => {});
+        
+        // This should be recorded (500 error)
+        fetch('https://httpbin.org/status/500').catch(() => {});
+        
+        // This should be recorded (network error)
+        fetch('https://nonexistent-domain-that-will-fail-12345.com/api').catch(() => {});
+      });
+
+      // Wait for network recording to flush
+      await page.waitForTimeout(4000);
+
+      expect(networkRequests.length).toBeGreaterThan(0);
+      
+      // Parse all recorded requests
+      const allRecordedRequests = networkRequests.flatMap(req => JSON.parse(req.postData));
+      
+      // Filter out any other requests that might have been made during initialization
+      const testRequests = allRecordedRequests.filter(req => 
+        req.url.includes('httpbin.org') || 
+        req.url.includes('nonexistent-domain') || 
+        req.error
+      );
+      
+      expect(testRequests.length).toBeGreaterThan(0);
+      
+      // Verify only error requests were recorded
+      for (const request of testRequests) {
+        const hasError = !!request.error;
+        const hasErrorStatus = request.responseStatus && request.responseStatus >= 400;
+        const isError = hasError || hasErrorStatus;
+        expect(isError).toBe(true);
+        
+        // Should not have recorded any 200 responses
+        expect(request.responseStatus).not.toBe(200);
+      }
+      
+      // Verify we have the expected error types
+      const hasNetworkError = testRequests.some(req => req.error);
+      const has404Error = testRequests.some(req => req.responseStatus === 404);
+      const has500Error = testRequests.some(req => req.responseStatus === 500);
+      
+      expect(hasNetworkError || has404Error || has500Error).toBe(true);
+    });
+
+    test('should handle request and response timing correctly for errors', async ({ page }) => {
       let networkRequest: any = null;
       
       // Setup API mocks
       await setupApiMocks(page);
+      
+      // Mock 404 error
+      await page.route('https://httpbin.org/status/404', (route: any) => {
+        route.fulfill({
+          status: 404,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Not Found' })
+        });
+      });
       
       page.on('request', request => {
         if (request.url().includes('/network-requests') && request.method() === 'POST') {
@@ -372,16 +503,15 @@ test.describe('Recorder E2E Tests', () => {
         }
       });
 
-      const testPagePath = resolve(__dirname, 'network-test.html');
+      const testPagePath = resolve(__dirname, 'error-network-test.html');
       await page.goto(`file://${testPagePath}`);
 
       await page.waitForTimeout(2000);
 
-      // Make a request and measure timing
+      // Make a request that will return 404 and measure timing
       const startTime = Date.now();
       await page.evaluate(() => {
-        return fetch('https://jsonplaceholder.typicode.com/posts/1')
-          .then(response => response.json());
+        return fetch('https://httpbin.org/status/404');
       });
       const endTime = Date.now();
 
@@ -394,6 +524,7 @@ test.describe('Recorder E2E Tests', () => {
       
       expect(timedRequest).toHaveProperty('timestamp');
       expect(timedRequest).toHaveProperty('duration');
+      expect(timedRequest).toHaveProperty('responseStatus', 404);
       expect(timedRequest.duration).toBeGreaterThan(0);
       expect(timedRequest.timestamp).toBeGreaterThanOrEqual(startTime);
       expect(timedRequest.timestamp).toBeLessThanOrEqual(endTime);

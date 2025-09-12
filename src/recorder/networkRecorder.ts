@@ -448,6 +448,24 @@ export class NetworkRecorder {
 
     private addCompletedRequest(requestId: string, request: NetworkRequest) {
         this.pendingRequests.delete(requestId);
-        this.requestsBuffer.push(request);
+        
+        // Only record requests that are errors
+        if (this.isErrorRequest(request)) {
+            this.requestsBuffer.push(request);
+        }
+    }
+
+    private isErrorRequest(request: NetworkRequest): boolean {
+        // Network/fetch errors (error field is populated)
+        if (request.error) {
+            return true;
+        }
+        
+        // HTTP error status codes (4xx, 5xx)
+        if (request.responseStatus && request.responseStatus >= 400) {
+            return true;
+        }
+        
+        return false;
     }
 }
