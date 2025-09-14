@@ -26,6 +26,7 @@ interface NetworkRecorderSettings {
     captureResponseBodies: boolean;
     excludeHeaders: string[];
     requestBodyMaskingFunction?: (body: string) => string;
+    responseBodyMaskingFunction?: (body: string) => string;
 }
 
 export class NetworkRecorder {
@@ -190,7 +191,7 @@ export class NetworkRecorder {
 
             const sanitizedUrl = self.sanitizeUrl(url);
             const filteredHeaders = self.filterHeaders(requestHeaders);
-            const truncatedBody = self.truncateContent(requestBody, self.networkSettings.maxRequestBodySize);
+            const truncatedBody = self.truncateRequestContent(requestBody, self.networkSettings.maxRequestBodySize);
 
             // Create initial request record
             const networkRequest: Partial<NetworkRequest> = {
@@ -222,7 +223,7 @@ export class NetworkRecorder {
                     try {
                         const clonedResponse = response.clone();
                         const text = await clonedResponse.text();
-                        responseBody = self.truncateContent(text, self.networkSettings.maxResponseBodySize);
+                        responseBody = self.truncateResponseContent(text, self.networkSettings.maxResponseBodySize);
                     } catch (e) {
                         responseBody = "[Unable to read response body]";
                     }
@@ -304,7 +305,7 @@ export class NetworkRecorder {
                     method,
                     url,
                     requestHeaders: Object.keys(requestHeaders).length > 0 ? self.filterHeaders(requestHeaders) : undefined,
-                    requestBody: self.truncateContent(requestBody, self.networkSettings.maxRequestBodySize),
+                    requestBody: self.truncateRequestContent(requestBody, self.networkSettings.maxRequestBodySize),
                     timestamp
                 };
 
@@ -332,7 +333,7 @@ export class NetworkRecorder {
 
                         if (self.networkSettings.captureResponseBodies) {
                             try {
-                                responseBody = self.truncateContent(xhr.responseText, self.networkSettings.maxResponseBodySize);
+                                responseBody = self.truncateResponseContent(xhr.responseText, self.networkSettings.maxResponseBodySize);
                             } catch (e) {
                                 responseBody = "[Unable to read response]";
                             }
@@ -426,19 +427,43 @@ export class NetworkRecorder {
         return filtered;
     }
 
-    private truncateContent(content: string | undefined, maxSize: number): string | undefined {
+    private truncateRequestContent(content: string | undefined, maxSize: number): string | undefined {
         if (!content) return content;
-        
-        // Apply masking function if provided
+
+        // Apply request masking function if provided
         let processedContent = content;
         if (this.networkSettings.requestBodyMaskingFunction) {
-            processedContent = this.networkSettings.requestBodyMaskingFunction(content);
+            try {
+                processedContent = this.networkSettings.requestBodyMaskingFunction(content);
+            } catch (error) {
+                logger.error("Failed to apply request masking function");
+            }
         }
-        
+
         if (processedContent.length > maxSize) {
             return processedContent.substring(0, maxSize) + `... [truncated from ${processedContent.length} chars]`;
         }
-        
+
+        return processedContent;
+    }
+
+    private truncateResponseContent(content: string | undefined, maxSize: number): string | undefined {
+        if (!content) return content;
+
+        // Apply response masking function if provided
+        let processedContent = content;
+        if (this.networkSettings.responseBodyMaskingFunction) {
+            try {
+                processedContent = this.networkSettings.responseBodyMaskingFunction(content);
+            } catch (error) {
+                logger.error("Failed to apply response masking function");
+            }
+        }
+
+        if (processedContent.length > maxSize) {
+            return processedContent.substring(0, maxSize) + `... [truncated from ${processedContent.length} chars]`;
+        }
+
         return processedContent;
     }
 

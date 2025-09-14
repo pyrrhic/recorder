@@ -168,6 +168,7 @@ export interface RecorderSettings {
         captureResponseBodies: boolean;
         excludeHeaders: string[];
         requestBodyMaskingFunction?: (body: string) => string;
+        responseBodyMaskingFunction?: (body: string) => string;
     };
 }
 

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Response Body Masking Test</title>
+    <script src="../dist/browser/recorder.iife.js"></script>
+    <script>
+        // Define a response masking function that masks sensitive data
+        function maskResponseBody(body) {
+            try {
+                const parsed = JSON.parse(body);
+                // Mask any field that contains 'secret', 'password', or 'token'
+                const mask = (obj) => {
+                    for (const key in obj) {
+                        if (typeof obj[key] === 'object' && obj[key] !== null) {
+                            mask(obj[key]);
+                        } else if (key.toLowerCase().includes('secret') ||
+                                   key.toLowerCase().includes('password') ||
+                                   key.toLowerCase().includes('token')) {
+                            obj[key] = '[MASKED]';
+                        }
+                    }
+                };
+                mask(parsed);
+                return JSON.stringify(parsed);
+            } catch (e) {
+                // If not JSON, just return the original body
+                return body;
+            }
+        }
+
+        // Initialize recorder with response body masking enabled
+        const recorder = new window.scryspell.Recorder(window, '0198cd92-6b50-7098-8b71-ec86549dc6a8', {
+            maskingLevel: "none",
+            networkRecording: {
+                enabled: true,
+                captureHeaders: true,
+                captureRequestBodies: true,
+                captureResponseBodies: true,
+                responseBodyMaskingFunction: (body) => {
+                    const data = JSON.parse(body);
+                    if (data.password) data.password = "**redacted**";
+                    if (data.email) data.email = "**redacted**";
+                    return JSON.stringify(data);
+                }
+            }
+        });
+        recorder.start();
+    </script>
+</head>
+<body>
+    <h1>Response Body Masking Test Page</h1>
+    <p>This page tests response body masking functionality.</p>
+
+    <div id="results"></div>
+
+    <script>
+        // Test function that can be called from the test
+        window.testResponseMasking = function() {
+            return fetch('https://httpbin.org/get', {
+                method: 'GET'
+            }).then(response => response.json())
+            .then(data => {
+                console.log('Response received:', data);
+                return data;
+            });
+        };
+    </script>
+</body>
+</html>
