@@ -1,2 +1,2 @@
-export { Recorder, type RecorderSettings } from './recorder/recorder';
+export { Recorder, type RecorderSettings, type CapturedUserIdentity } from './recorder/recorder';
 export { NetworkRecorder, type NetworkRequest } from './recorder/networkRecorder';

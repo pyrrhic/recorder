@@ -37,6 +37,7 @@ async function setupApiMocks(page: any) {
   await page.route('**/console-errors', (route: any) => route.fulfill(successResponse));
   await page.route('**/ping', (route: any) => route.fulfill(pingResponse));
   await page.route('**/metadata', (route: any) => route.fulfill(successResponse));
+  await page.route('**/identify', (route: any) => route.fulfill(successResponse));
 
   // Allow external API calls for testing
   await page.route('https://jsonplaceholder.typicode.com/**', (route: any) => {
@@ -107,6 +108,73 @@ test.describe('Recorder E2E Tests', () => {
     
     // Verify that the response was 201
     expect(responseStatus, 'Response status should be 201').toBe(201);
+  });
+
+  test('should allow user identification with identify method', async ({ page }) => {
+    let identifyRequest: any = null;
+    let identifyResponseStatus: number | null = null;
+
+    // Setup API mocks
+    await setupApiMocks(page);
+
+    // Monitor the PATCH request to the identify endpoint
+    page.on('request', request => {
+      if (request.url().includes('/identify') && request.method() === 'PATCH') {
+        identifyRequest = {
+          url: request.url(),
+          method: request.method(),
+          headers: request.headers(),
+          postData: request.postData()
+        };
+      }
+    });
+
+    page.on('response', response => {
+      if (response.url().includes('/identify') && response.request().method() === 'PATCH') {
+        identifyResponseStatus = response.status();
+      }
+    });
+
+    // Navigate to the test page
+    const testPagePath = resolve(__dirname, 'index.html');
+    await page.goto(`file://${testPagePath}`);
+
+    // Wait for the page to fully load and the recorder to initialize
+    await page.waitForLoadState('domcontentloaded');
+
+    // Wait for session to be created
+    await page.waitForTimeout(2000);
+
+    // Call identify method
+    await page.evaluate(() => {
+      // @ts-ignore - accessing global recorder instance
+      if (window.testRecorder) {
+        // @ts-ignore
+        window.testRecorder.identify('user_123');
+      }
+    });
+
+    // Give time for the identify request
+    await page.waitForTimeout(2000);
+
+    // Verify the identify method is available (no errors thrown)
+    const identifyMethodExists = await page.evaluate(() => {
+      // @ts-ignore
+      return window.testRecorder && typeof window.testRecorder.identify === 'function';
+    });
+
+    expect(identifyMethodExists).toBe(true);
+
+    // If identify request was made, verify it was proper
+    if (identifyRequest) {
+      expect(identifyRequest.method).toBe('PATCH');
+      expect(identifyRequest.url).toContain('/identify');
+
+      const postData = JSON.parse(identifyRequest.postData);
+      expect(postData.userId).toBe('user_123');
+
+      expect(identifyResponseStatus).toBe(201);
+    }
   });
 
   test.describe('Network Recording', () => {

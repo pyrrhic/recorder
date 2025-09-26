@@ -21,3 +21,30 @@ This can be passed in using the MaskingLevel enum (ex. MaskingLevel.InputAndText
 ### Masking specific html elements
 
 To mask all text in specific html elements (and their children) add the css class **scry-block**.
+
+### User Identification
+
+You can identify users in your recordings to connect anonymous sessions with known user identities:
+
+```javascript
+recorder.identify('user_123');
+```
+
+**Key features:**
+* Call `identify()` before or after starting the recorder - it works both ways
+* User identification is automatically sent to your backend
+* Non-blocking - recording continues even if identification fails
+* Overwrites previous identification if called multiple times
+
+**Example integration:**
+```javascript
+const recorder = new window.scryspell.Recorder(window, 'YOUR_API_TOKEN', { maskingLevel: "all" });
+recorder.start();
+
+// Later, when user logs in
+fetch('/api/current-user')
+  .then(response => response.json())
+  .then(user => {
+    recorder.identify(user.id);
+  });
+```

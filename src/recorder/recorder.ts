@@ -2,7 +2,7 @@ import {SessionRecorder} from "./sessionRecorder";
 import {EventRecorder} from "./eventRecorder";
 import {ErrorRecorder} from "./errorRecorder";
 import {NetworkRecorder} from "./networkRecorder";
-import {post, put} from "../requests";
+import {post, put, patch} from "../requests";
 import {UAParser} from "ua-parser-js";
 
 export class Recorder {
@@ -14,6 +14,7 @@ export class Recorder {
     private capturedSessionId: String | null = null;
     private pingIntervalMs = 20000;
     private pingTimeout: NodeJS.Timeout | null = null;
+    private userIdentity: CapturedUserIdentity | null = null;
 
     constructor(private window: Window, private publicToken: string, userSettings: Partial<RecorderSettings> = {}) {
         // Default settings
@@ -62,6 +63,11 @@ export class Recorder {
                 this.schedulePing();
                 const capturedUserMetadata = this.collectCapturedUserMetadata();
                 post(`public/captured-sessions/${this.capturedSessionId}/captured-session/metadata`, capturedUserMetadata, { withCredentials: false });
+
+                // Send user identification if it was set before session creation
+                if (this.userIdentity) {
+                    this.sendUserIdentification();
+                }
             })
             .catch(error => {
                 console.error(error);
@@ -104,6 +110,46 @@ export class Recorder {
         this.eventRecorder.stop();
         this.errorRecorder.stop();
         this.networkRecorder.stop();
+    }
+
+    /**
+     * Identify the current user with a unique ID
+     * @param userId - Unique identifier for the user (e.g., database ID, email)
+     * @example
+     * recorder.identify('user_123');
+     */
+    public identify(userId: string) {
+        if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+            console.error('Recorder.identify: userId must be a non-empty string');
+            return;
+        }
+
+        this.userIdentity = {
+            userId: userId.trim()
+        };
+
+        // If session is already created, send identification immediately
+        if (this.capturedSessionId) {
+            this.sendUserIdentification();
+        }
+        // If not, identification will be sent when session is created
+    }
+
+    private async sendUserIdentification() {
+        if (!this.capturedSessionId || !this.userIdentity) {
+            return;
+        }
+
+        try {
+            const response = await patch(`public/captured-sessions/${this.capturedSessionId}/identify`, this.userIdentity, { withCredentials: false });
+
+            if (response.status >= 400) {
+                console.error(`Failed to identify user: HTTP ${response.status}`, response.data);
+            }
+        } catch (error) {
+            console.error("Error sending user identification:", error);
+            // Identification failure is non-critical - recording should continue
+        }
     }
 
     private collectCapturedUserMetadata = (): CapturedUserMetadata => {
@@ -190,4 +236,8 @@ export interface CapturedUserMetadata {
     utmCampaign?: string;
     utmContent?: string;
     utmTerm?: string;
+}
+
+export interface CapturedUserIdentity {
+    userId: string;
 }
