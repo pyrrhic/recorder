@@ -11,7 +11,7 @@ export class Recorder {
     private errorRecorder: ErrorRecorder;
     private networkRecorder: NetworkRecorder;
     private recorderSettings: RecorderSettings;
-    private capturedSessionId: String | null = null;
+    private capturedSessionId: string | null = null;
     private pingIntervalMs = 20000;
     private pingTimeout: NodeJS.Timeout | null = null;
     private userIdentity: CapturedUserIdentity | null = null;
@@ -65,9 +65,7 @@ export class Recorder {
                 post(`public/captured-sessions/${this.capturedSessionId}/captured-session/metadata`, capturedUserMetadata, { withCredentials: false });
 
                 // Send user identification if it was set before session creation
-                if (this.userIdentity) {
-                    this.sendUserIdentification();
-                }
+                this.sendUserIdentification(this.capturedSessionId, this.userIdentity);
             })
             .catch(error => {
                 console.error(error);
@@ -119,7 +117,7 @@ export class Recorder {
      * recorder.identify('user_123');
      */
     public identify(userId: string) {
-        if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        if (!userId || userId.trim() === '') {
             console.error('Recorder.identify: userId must be a non-empty string');
             return;
         }
@@ -129,19 +127,21 @@ export class Recorder {
         };
 
         // If session is already created, send identification immediately
-        if (this.capturedSessionId) {
-            this.sendUserIdentification();
-        }
+        this.sendUserIdentification(this.capturedSessionId, this.userIdentity);
         // If not, identification will be sent when session is created
     }
 
-    private async sendUserIdentification() {
-        if (!this.capturedSessionId || !this.userIdentity) {
+    public clearUserIdentity() {
+        this.userIdentity = null;
+    }
+
+    private async sendUserIdentification(capturedSessionId: string | null, userIdentity: CapturedUserIdentity | null) {
+        if (!capturedSessionId || !userIdentity) {
             return;
         }
 
         try {
-            const response = await patch(`public/captured-sessions/${this.capturedSessionId}/identify`, this.userIdentity, { withCredentials: false });
+            const response = await patch(`public/captured-sessions/${capturedSessionId}/identify`, userIdentity.userId, { withCredentials: false });
 
             if (response.status >= 400) {
                 console.error(`Failed to identify user: HTTP ${response.status}`, response.data);
